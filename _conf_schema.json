@@ -1,0 +1,121 @@
+{
+  "vault_path": {
+    "description": "Obsidian 仓库目录",
+    "type": "string",
+    "default": "~/Documents/BotMemory",
+    "hint": "Obsidian 直接打开这个目录作为 Vault；机器人会把 Markdown 写进这里"
+  },
+  "diary_folder": {
+    "description": "日记子目录",
+    "type": "string",
+    "default": "日记"
+  },
+  "notes_folder": {
+    "description": "笔记子目录",
+    "type": "string",
+    "default": "笔记"
+  },
+  "owner_session": {
+    "description": "所有者私聊会话",
+    "type": "string",
+    "default": "",
+    "hint": "例如 napcat:FriendMessage:123456789；留空时只允许 AstrBot 管理员使用"
+  },
+  "max_read_chars": {
+    "description": "单次读取笔记的最大字符数",
+    "type": "int",
+    "default": 6000
+  },
+  "auto_diary_enabled": {
+    "description": "自动写日记",
+    "type": "bool",
+    "default": true,
+    "hint": "只统计所有者私聊；按下面的频率和长度限制自动生成简短日记"
+  },
+  "auto_diary_min_interval_minutes": {
+    "description": "自动日记最小间隔（分钟）",
+    "type": "int",
+    "default": 120,
+    "hint": "两次自动日记之间至少间隔多久；建议 120 分钟"
+  },
+  "auto_diary_max_per_day": {
+    "description": "自动日记每天上限",
+    "type": "int",
+    "default": 3,
+    "hint": "超过后不再自动写，手动触发不受限制"
+  },
+  "auto_diary_min_exchanges": {
+    "description": "至少积累几轮对话",
+    "type": "int",
+    "default": 3,
+    "hint": "消息太少时不写，避免把一句寒暄写成日记"
+  },
+  "auto_diary_max_chars": {
+    "description": "每条自动日记最大字数",
+    "type": "int",
+    "default": 120,
+    "hint": "超过会截断；建议 80–160"
+  },
+  "auto_diary_quiet_hours": {
+    "description": "免打扰时段",
+    "type": "string",
+    "default": "0-7",
+    "hint": "例如 0-7 表示 0 点到 7 点不自动写；留空表示不限"
+  },
+  "auto_diary_include_groups": {
+    "description": "记录群聊",
+    "type": "bool",
+    "default": true,
+    "hint": "只记录机器人实际参与回复过的群聊内容；摘要时权重低于所有者私聊"
+  },
+  "auto_diary_include_other_private": {
+    "description": "记录其他人的私聊",
+    "type": "bool",
+    "default": true,
+    "hint": "会参与摘要但权重最低，且不会写出 QQ 号或昵称"
+  },
+  "auto_diary_owner_weight": {
+    "description": "所有者私聊权重",
+    "type": "int",
+    "default": 3,
+    "hint": "权重越高越优先进入日记；建议 3"
+  },
+  "auto_diary_group_weight": {
+    "description": "群聊权重",
+    "type": "int",
+    "default": 2,
+    "hint": "建议 2"
+  },
+  "auto_diary_other_weight": {
+    "description": "其他人私聊权重",
+    "type": "int",
+    "default": 1,
+    "hint": "建议 1"
+  },
+  "note_scope_mode": {
+    "description": "笔记作用域模式",
+    "type": "string",
+    "default": "flat",
+    "options": [
+      "flat",
+      "session"
+    ],
+    "hint": "flat 全部放在「笔记」目录；session 自动按会话分目录（笔记/私聊-<QQ>、笔记/群聊-<群号>），工具里选 global 才写共享区"
+  },
+  "diary_scope_mode": {
+    "description": "日记作用域模式",
+    "type": "string",
+    "default": "flat",
+    "options": [
+      "flat",
+      "session"
+    ],
+    "hint": "session 时手动日记写进 日记/<会话>/日期.md；全局日记（自动日记）不受影响"
+  },
+  "auto_diary_per_scope": {
+    "description": "自动日记按会话分写",
+    "type": "bool",
+    "default": false,
+    "hint": "开启后每个会话各有独立的频率限制，各自写 日记/<会话>/日期.md；全局日记仍照常写。开启会增加日记 LLM 调用"
+  }
+}
