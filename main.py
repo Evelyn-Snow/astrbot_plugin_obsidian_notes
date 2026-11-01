@@ -482,6 +482,50 @@ class ObsidianNotes(Star):
             value = value[: max(1, limit - 1)].rstrip("，。！？；：,.!?;: ") + "…"
         return value
 
+    def _virtual_context_block(self) -> str:
+        """虚拟人生日程 + 真实经历插件联动（检测分支，任一缺失/失败都静默跳过）。"""
+        sections: list[str] = []
+        try:
+            if self.context.get_registered_star("astrbot_plugin_virtual_life"):
+                path = Path(StarTools.get_data_dir("astrbot_plugin_virtual_life")) / "plans.json"
+                data = json.loads(path.read_text(encoding="utf-8"))
+                plans = data.get("plans") if isinstance(data, dict) else None
+                today = date.today().isoformat()
+                hits = [
+                    v
+                    for k, v in (plans or {}).items()
+                    if isinstance(v, dict) and str(k).startswith(f"{today}::")
+                ]
+                plan = hits[0] if len(hits) == 1 else None
+                if plan:
+                    timeline = "；".join(
+                        f"{item.get('start')} {item.get('activity')}"
+                        for item in (plan.get("timeline") or [])[:14]
+                        if isinstance(item, dict)
+                    )[:400]
+                    sections.append(
+                        f"【今日虚拟日程】主题：{plan.get('theme') or '日常'}，"
+                        f"心情：{plan.get('mood') or '平静'}。安排：{timeline}"
+                    )
+        except Exception as exc:
+            logger.debug(f"[{NAME}] 读取虚拟日程失败：{exc}")
+        try:
+            if self.context.get_registered_star("astrbot_plugin_snow_experience"):
+                events_dir = Path(StarTools.get_data_dir("astrbot_plugin_snow_experience")) / "events"
+                files = sorted(events_dir.glob("*.md"), key=lambda p: p.name)[-2:]
+                for file in files:
+                    text = file.read_text(encoding="utf-8")
+                    body_lines = [
+                        line.strip()
+                        for line in text.splitlines()
+                        if line.strip() and not line.startswith(("# ", "- "))
+                    ]
+                    if body_lines:
+                        sections.append(f"【最近真实经历】{file.stem}：{'；'.join(body_lines)[:200]}")
+        except Exception as exc:
+            logger.debug(f"[{NAME}] 读取真实经历失败：{exc}")
+        return "\n".join(sections)
+
     async def _write_auto_diary(self):
         self._auto_last_attempt = time.time()
         owner = self._owner_session()
@@ -503,6 +547,9 @@ class ObsidianNotes(Star):
             total += len(line)
         limit = max(40, min(int(self.conf.get("auto_diary_max_chars") or 120), 300))
         source = "\n\n".join(lines)
+        extra = self._virtual_context_block()
+        if extra:
+            source = f"{source}\n\n{extra}"
         prompt = (
             "根据下面最近的对话，写一条今天的日记。这些对话包含所有者私聊、群聊和其他人私聊，"
             "已按重要性筛选。请优先记录所有者私聊或所有者参与的群聊中值得记住的事、所有者的偏好、"

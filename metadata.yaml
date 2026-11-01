@@ -2,7 +2,7 @@ name: astrbot_plugin_obsidian_notes
 display_name: Bot Obsidian 笔记
 desc: 让机器人把日记、笔记写进本机 Obsidian 仓库，并能搜索和读取笔记来补充记忆
 help: 对它说「写进今天日记」「新建笔记」「找找笔记里关于……的内容」
-version: v0.3.1
+version: v0.3.2
 repo: https://github.com/Evelyn-Snow/astrbot_plugin_obsidian_notes
 author: Evelyn-Snow
 support_platforms:
