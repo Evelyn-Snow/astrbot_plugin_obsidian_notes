@@ -511,7 +511,16 @@ class ObsidianNotes(Star):
             logger.debug(f"[{NAME}] 读取虚拟日程失败：{exc}")
         try:
             if self.context.get_registered_star("astrbot_plugin_snow_experience"):
-                events_dir = Path(StarTools.get_data_dir("astrbot_plugin_snow_experience")) / "events"
+                # 经历目录跟随 snow_experience 的 events_dir 配置（读不到配置时回退其数据目录）
+                base = None
+                meta = self.context.get_registered_star("astrbot_plugin_snow_experience")
+                plugin = getattr(meta, "star_cls", None) if meta else None
+                configured = str(getattr(plugin, "conf", {}).get("events_dir") or "").strip() if plugin else ""
+                if configured:
+                    base = Path(os.path.expandvars(configured))
+                if base is None:
+                    base = Path(StarTools.get_data_dir("astrbot_plugin_snow_experience")) / "events"
+                events_dir = base
                 files = sorted(events_dir.glob("*.md"), key=lambda p: p.name)[-2:]
                 for file in files:
                     text = file.read_text(encoding="utf-8")
