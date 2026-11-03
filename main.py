@@ -19,6 +19,7 @@ from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star, StarTools
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from .recording import append_diary_entry, month_of
 from .scoping import derive_scope_id, scope_kind, scope_subdir
 
 NAME = "astrbot_plugin_obsidian_notes"
@@ -199,14 +200,16 @@ class ObsidianNotes(Star):
         if scope_id:
             base = base / scope_subdir(scope_id)
             base.mkdir(parents=True, exist_ok=True)
-        path = base / f"{day}.md"
+        month = month_of(day)
+        path = base / f"{month}.md"
         stamp = time.strftime("%H:%M")
         entry = f"- {stamp} {str(body).strip().replace(chr(10), chr(10) + '  ')}"
         if path.exists():
-            text = path.read_text(encoding="utf-8-sig").rstrip() + "\n" + entry
+            text = path.read_text(encoding="utf-8-sig")
         else:
-            text = f"# {day}\n\n{entry}"
-        path.write_text(text.rstrip() + "\n", encoding="utf-8")
+            text = f"# {month}\n"
+        text = append_diary_entry(text, day, entry)
+        path.write_text(text, encoding="utf-8")
         logger.info("[obsidian_notes] diary %s", path)
         return path
 
