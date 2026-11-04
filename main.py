@@ -35,6 +35,18 @@ class ObsidianNotes(Star):
         self._auto_task: asyncio.Task | None = None
         self._auto_last_attempt = 0.0
 
+    async def terminate(self) -> None:
+        task = self._auto_task
+        if task is not None and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+            except Exception:
+                pass
+        self._auto_task = None
+
     # ---------------- 基础 ----------------
     @staticmethod
     def _clean_name(value: str, fallback: str = "未命名") -> str:
@@ -229,10 +241,11 @@ class ObsidianNotes(Star):
                 scope_id = self._scope_id(event)
             path = self._note_path(title, scope_id=scope_id)
             if not path.exists():
-                matches = list(self._notes_dir().rglob(self._clean_name(title) + ".md"))
-                if not matches:
+                # 只回退到全局笔记，不在整个 vault 里跨会话乱找
+                global_path = self._note_path(title, scope_id="")
+                if not global_path.exists():
                     return f"没有找到笔记「{self._clean_name(title)}」。"
-                path = matches[0]
+                path = global_path
             text = path.read_text(encoding="utf-8-sig")
             limit = max(1000, int(self.conf.get("max_read_chars") or 6000))
             if len(text) > limit:
@@ -261,6 +274,9 @@ class ObsidianNotes(Star):
         if not terms:
             return "搜索词为空。"
         max_results = max(1, min(int(limit or 5), 10))
+        return await asyncio.to_thread(self._search_notes_sync, terms, max_results)
+
+    def _search_notes_sync(self, terms: list[str], max_results: int) -> str:
         try:
             scored = []
             for path in self._vault().rglob("*.md"):
